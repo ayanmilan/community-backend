@@ -1,6 +1,7 @@
 # community-backend
 
-# registeration POST route - /users/register
+registeration POST route - /users/register
+
   json body with fields mobileNo, password
   eg - 
   {
@@ -8,7 +9,8 @@
     "password": "123"
   }
   
- # login POST route - /users/login
+ login POST route - /users/login
+ 
   json body with fields mobileNo, password
   eg - 
   {
