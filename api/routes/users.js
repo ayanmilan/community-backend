@@ -22,11 +22,11 @@ router.post('/register', (req, res, next) => {
 			else {
 				axios.get(`http://api.msg91.com/api/sendotp.php?authkey=${process.env.msg91authkey}&mobile=${"91"+req.body.mobileNo}`)
 					.then( response => {
-						res.status(200).json({message: 'OTP sent, please verify'})
+						res.status(200).json({message: 'OTP sent, please verify'});
 					})
 					.catch( error => {
 						console.log(error);
-						res.status(400).json({error: 'OTP not sent'})
+						res.status(400).json({error: 'OTP not sent'});
 					});
 			}
 		});
@@ -36,7 +36,7 @@ router.post('/register/otp', (req, res, next) => {
 	// OTP verification
 	axios.get(`http://api.msg91.com/api/verifyRequestOTP.php?authkey=${process.env.msg91authkey}&mobile=${"91"+req.body.mobileNo}&otp=${req.body.otp}`)
 		.then( (response) => {
-			console.log(response.data.type);
+			console.log(response.data);
 			if(response.data.type == "success" ) {
 				// user registeration
 				bcrypt.hash(req.body.password, 10, (err, hash) => {
@@ -70,12 +70,12 @@ router.post('/register/otp', (req, res, next) => {
 		})
 		.catch( error => {
 			console.log(error);
-			res.status(400).json({error: error})
+			res.status(400).json({error: error});
 		});
 });
 
-// LOGIN ROUTE
-router.post('/login', (req, res, next) => {
+// LOGIN WITH PASSWORD ROUTE
+router.post('/loginpw', (req, res, next) => {
 	User.find({mobileNo: req.body.mobileNo})
 		.exec()
 		.then(user => {
@@ -100,12 +100,83 @@ router.post('/login', (req, res, next) => {
 						token: token
 					});
 				}
-				res.status(401).json({message: 'Authentication failed'});
+				//wrong password entered
+				res.status(401).json({message: 'Authentication failed'}); 
 			})
 		})
 		.catch(err => {
 			res.status(500).json({error: err});
-		})
+		});
 });
+
+//LOGIN WITH OTP ROUTE
+router.post('/loginotp', (req, res, next) => {
+	User.find({mobileNo: req.body.mobileNo})
+		.exec()
+		.then(user => {
+			if(user.length <= 0) {
+				return res.status(401).json({message: 'Authentication failed'});
+			}
+			else {
+				axios.get(`http://api.msg91.com/api/sendotp.php?authkey=${process.env.msg91authkey}&mobile=${"91"+req.body.mobileNo}`)
+					.then( response => {
+						res.status(200).json({message: 'OTP sent, please verify'});
+					})
+					.catch( error => {
+						console.log(error);
+						res.status(400).json({error: 'OTP not sent'});
+					});
+			}
+		})
+		.catch(err => {
+			res.status(500).json({error: err});
+		});	
+});
+
+router.post('/loginotp/verify', (req, res, next) => {
+	User.find({mobileNo: req.body.mobileNo})
+		.exec()
+		.then(user => {
+			if(user.length <= 0) {
+				return res.status(401).json({message: 'Authentication failed'});
+			}
+			else {
+				axios.get(`http://api.msg91.com/api/verifyRequestOTP.php?authkey=${process.env.msg91authkey}&mobile=${"91"+req.body.mobileNo}&otp=${req.body.otp}`)
+					.then( (response) => {
+						console.log(response.data);
+						if(response.data.type == "success" ) {
+							// JWT generation
+							const token = jwt.sign({
+								mobileNo: user[0].mobileNo,
+								userId: user[0]._id
+							}, 
+							process.env.JWT_KEY || "secret",
+							{
+								expiresIn: "6h"
+							});
+							//User.updateOne({mobileNo: user[0].mobileNo}, {$set: {lastIp : }});
+							return res.status(200).json({
+								message: 'Aunthentication successful',
+								token: token
+							});
+						}
+						else if (response.data.message == "already_verified") {
+							res.status(400).json({message: 'OTP verified already, try again'});
+						}
+						else {
+							res.status(401).json({message: 'Wrong OTP'});
+						}
+					})
+					.catch( error => {
+						console.log(error);
+						res.status(400).json({error: error});
+					});
+			}
+		})
+		.catch(err => {
+			res.status(500).json({error: err});
+		});	
+});
+
 
 module.exports = router;
