@@ -1,21 +1,31 @@
 # community-backend
 
-registeration POST route - /users/register
+### Registeration POST route - /users/register
 
-  json body with fields: mobileNo, password.\
+  ##### JSON body with fields: mobileNo
+  Eg - 
+  
+      {
+        "mobileNo": 9999999999
+      }
+  
+### OTP Registeration POST route - /users/register/otp
+  
+  ##### JSON body with fields: mobileNo, password, otp
   Eg - 
   
       {
         "mobileNo": 9999999999,
-        "password": "123"
+        "password": "test123",
+        "otp": "1234"
       }
   
- login POST route - /users/login
+### Login POST route - /users/login
  
-  json body with fields: mobileNo, password.\
+  ##### JSON body with fields: mobileNo, password
   Eg - 
   
     {
       "mobileNo": 9999999999,
-      "password": "123"
+      "password": "test123"
     } 
