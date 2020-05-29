@@ -11,13 +11,15 @@
   
 ### OTP Registeration POST route - /users/register/otp
   
-  ##### JSON body with fields: mobileNo, password, otp
+  ##### JSON body with fields: mobileNo, password, otp, name, dob(YYYY-MM-DD)
   Eg - 
   
       {
         "mobileNo": 9999999999,
         "password": "test123",
-        "otp": "1234"
+        "otp": "1234",
+        "name": "test name",
+        "dob": "1990-10-24"
       }
   
 ### Login with password POST route - /users/loginpw

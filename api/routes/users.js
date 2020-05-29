@@ -5,6 +5,8 @@ const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv').config();
 const axios = require('axios');
 const bcrypt = require('bcrypt');
+const geoip = require('geoip-lite');
+
 const User = require('../models/user'); // User schema
 
 router.post('/register', (req, res, next) => {
@@ -47,7 +49,9 @@ router.post('/register/otp', (req, res, next) => {
 						const user = new User({
 							_id: new mongoose.Types.ObjectId(),
 							mobileNo: req.body.mobileNo,
-							password: hash
+							password: hash,
+							name: req.body.name,
+							dob: new Date(req.body.dob)
 						});
 						user
 							.save()
@@ -76,14 +80,30 @@ router.post('/register/otp', (req, res, next) => {
 
 // LOGIN WITH PASSWORD ROUTE
 router.post('/loginpw', (req, res, next) => {
+	//getting ip info
+	var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+	var geo = geoip.lookup(ip);
+	
+	//checking if exists
 	User.find({mobileNo: req.body.mobileNo})
 		.exec()
 		.then(user => {
 			if(user.length <= 0) {
 				return res.status(401).json({message: 'Authentication failed'});
 			}
+			//updating login attempts
+			User.updateOne({mobileNo: user[0].mobileNo}, {
+				$inc: {loginAttempts: 1}
+			},
+			err1 => {
+				if (err1) console.log(err1)
+			});
+
+			//checking password
 			bcrypt.compare(req.body.password, user[0].password, (err, result) => {
-				if(err) return res.status(401).json({message: 'Authentication failed'});
+				if(err) {
+					return res.status(401).json({message: 'Authentication failed'});
+				}	
 				if(result) {
 					// JWT generation
 					const token = jwt.sign({
@@ -94,7 +114,22 @@ router.post('/loginpw', (req, res, next) => {
 					{
 						expiresIn: "6h"
 					});
-					//User.updateOne({mobileNo: user[0].mobileNo}, {$set: {lastIp : }});
+
+					//updating login info
+					User.updateOne({mobileNo: user[0].mobileNo}, {
+						$set: {
+							loginInfo: {
+								ipAdd: ip,
+								country: geo.country,
+								city: geo.city
+							},
+							loginAttempts: 0
+						}
+					},
+					err1 => {
+						if (err1) console.log(err1)
+					});
+
 					return res.status(200).json({
 						message: 'Aunthentication successful',
 						token: token
@@ -118,6 +153,15 @@ router.post('/loginotp', (req, res, next) => {
 				return res.status(401).json({message: 'Authentication failed'});
 			}
 			else {
+				//updating login attempts
+				User.updateOne({mobileNo: user[0].mobileNo}, {
+					$inc: {loginAttempts: 1}
+				},
+				err1 => {
+					if (err1) console.log(err1)
+				});
+
+				//sending OTP
 				axios.get(`http://api.msg91.com/api/sendotp.php?authkey=${process.env.msg91authkey}&mobile=${"91"+req.body.mobileNo}`)
 					.then( response => {
 						res.status(200).json({message: 'OTP sent, please verify'});
@@ -134,6 +178,11 @@ router.post('/loginotp', (req, res, next) => {
 });
 
 router.post('/loginotp/verify', (req, res, next) => {
+	//getting ip info
+	var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
+	var geo = geoip.lookup(ip);
+
+	//checking if exists
 	User.find({mobileNo: req.body.mobileNo})
 		.exec()
 		.then(user => {
@@ -141,6 +190,7 @@ router.post('/loginotp/verify', (req, res, next) => {
 				return res.status(401).json({message: 'Authentication failed'});
 			}
 			else {
+				//verifying OTP
 				axios.get(`http://api.msg91.com/api/verifyRequestOTP.php?authkey=${process.env.msg91authkey}&mobile=${"91"+req.body.mobileNo}&otp=${req.body.otp}`)
 					.then( (response) => {
 						console.log(response.data);
@@ -154,7 +204,22 @@ router.post('/loginotp/verify', (req, res, next) => {
 							{
 								expiresIn: "6h"
 							});
-							//User.updateOne({mobileNo: user[0].mobileNo}, {$set: {lastIp : }});
+
+							//updating login info
+							User.updateOne({mobileNo: user[0].mobileNo}, {
+								$set: {
+									loginInfo: {
+										ipAdd: ip,
+										country: geo.country,
+										city: geo.city
+									},
+									loginAttempts: 0
+								}
+							},
+							err1 => {
+								if (err1) console.log(err1)
+							});
+
 							return res.status(200).json({
 								message: 'Aunthentication successful',
 								token: token
