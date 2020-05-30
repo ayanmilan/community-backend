@@ -6,7 +6,7 @@
   Eg - 
   
       {
-        "mobileNo": 9999999999
+        "mobileNo": "9999999999"
       }
   
 ### OTP Registeration POST route - /users/register/otp
@@ -15,7 +15,7 @@
   Eg - 
   
       {
-        "mobileNo": 9999999999,
+        "mobileNo": "9999999999",
         "password": "test123",
         "otp": "1234",
         "name": "test name",
@@ -28,7 +28,7 @@
   Eg - 
   
     {
-      "mobileNo": 9999999999,
+      "mobileNo": "9999999999",
       "password": "test123"
     }
     
@@ -38,7 +38,7 @@
   Eg - 
   
     {
-      "mobileNo": 9999999999
+      "mobileNo": "9999999999"
     }
     
 ### Login OTP verification POST route - /users/loginotp/verify
@@ -47,6 +47,6 @@
   Eg - 
   
     {
-      "mobileNo": 9999999999,
+      "mobileNo": "9999999999",
       "otp": "1234"
     }    
