@@ -11,7 +11,7 @@ const User = require('../models/user'); // User schema
 
 router.post('/register', (req, res, next) => {
 	// checking if number entered is valid
-	if(typeof req.body.mobileNo != "number" || req.body.mobileNo.toString().length < 10 || req.body.mobileNo.toString().length>10 ) {
+	if(req.body.mobileNo.length < 10 || req.body.mobileNo.length>10 ) {
 		return res.status(500).json({message: 'Invalid number'});
 	}
 	User.find({mobileNo : req.body.mobileNo})
@@ -121,7 +121,8 @@ router.post('/loginpw', (req, res, next) => {
 							loginInfo: {
 								ipAdd: ip,
 								country: geo.country,
-								city: geo.city
+								city: geo.city,
+								loginTime: new Date()
 							},
 							loginAttempts: 0
 						}
@@ -211,7 +212,8 @@ router.post('/loginotp/verify', (req, res, next) => {
 									loginInfo: {
 										ipAdd: ip,
 										country: geo.country,
-										city: geo.city
+										city: geo.city,
+										loginTime: new Date()
 									},
 									loginAttempts: 0
 								}

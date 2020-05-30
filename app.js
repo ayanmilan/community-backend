@@ -2,14 +2,16 @@ const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
+const morgan = require('morgan');
 const dotenv = require('dotenv').config();
 const geoip = require('geoip-lite');
 
-mongoose.connect('mongodb://localhost:27017/community-app', { useNewUrlParser: true, useUnifiedTopology: true }, (err) => {
+mongoose.connect(process.env.MONGO_URL || 'mongodb://localhost:27017/community-app', { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true }, (err) => {
 	if(err) throw err;
 	else console.log('Database connected!');
 });
 
+app.use(morgan('dev'));
 app.use(bodyParser.json()); //JSON body parser
 
 // app.use((req, res, next) => {
@@ -20,6 +22,7 @@ app.use(bodyParser.json()); //JSON body parser
 // 	next();
 // });
 
+// LOGIN/REGISTER USER ROUTES
 const userRoutes = require('./api/routes/users');
 app.use('/users', userRoutes);
 
