@@ -9,6 +9,42 @@ const geoip = require('geoip-lite');
 
 const User = require('../models/user'); // User schema
 
+// direct register without verification for testing
+router.post('/reg', (req, res, next) => {
+	User.find({mobileNo : req.body.mobileNo})
+		.exec()
+		.then(user => {
+			if(user.length > 0) {
+				return res.status(409).json({message: 'Number already registered'});
+			}
+			else {
+				bcrypt.hash(req.body.password, 10, (err, hash) => {
+					if (err) {
+						return res.status(500).json({error: err});
+					}
+					else {
+						const user = new User({
+							_id: new mongoose.Types.ObjectId(),
+							mobileNo : req.body.mobileNo,
+							password: hash,
+							name: req.body.name,
+							dob: new Date(req.body.dob)
+						});
+						user
+							.save()
+							.then(result => {
+								console.log(result);
+								res.status(201).json({message: 'User created'});
+							})
+							.catch(err1 => {
+								res.status(500).json({error: err1});
+							});
+					}
+				})
+			}
+		})
+});
+
 router.post('/register', (req, res, next) => {
 	// checking if number entered is valid
 	if(req.body.mobileNo.length < 10 || req.body.mobileNo.length>10 ) {

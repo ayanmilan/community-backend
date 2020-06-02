@@ -11,7 +11,11 @@ mongoose.connect(process.env.MONGO_URL || 'mongodb://localhost:27017/community-a
 	else console.log('Database connected!');
 });
 
+//for logging the requests
+morgan.token('body', function (req, res) { return JSON.stringify(req.body) });
+app.use(morgan(':body - :req[content-length]'));
 app.use(morgan('dev'));
+
 app.use(bodyParser.json()); //JSON body parser
 
 // app.use((req, res, next) => {
