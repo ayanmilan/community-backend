@@ -50,3 +50,14 @@
       "mobileNo": "9999999999",
       "otp": "1234"
     }    
+
+### Forgot password POST route (requires OTP from 'Login with OTP route') - /users/forgotpw
+ 
+  ##### JSON body with fields: mobileNo, otp, password
+  Eg - 
+  
+    {
+      "mobileNo": "9999999999",
+      "otp": "1234",
+      "password": "newpass"
+    }    
