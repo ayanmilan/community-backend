@@ -117,6 +117,11 @@ router.post('/loginpw', (req, res, next) => {
 	//getting ip info
 	var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 	var geo = geoip.lookup(ip);
+	var geoCountry = ""; var geoCity = "";
+	if(geo == null || geo.country == null) geoCountry = "unknown";
+	else geoCountry = geo.country;
+	if(geo == null || geo.city == null) geoCity = "unknown";
+	else geoCountry = geo.city;
 	
 	//checking if exists
 	User.find({mobileNo: req.body.mobileNo})
@@ -154,8 +159,8 @@ router.post('/loginpw', (req, res, next) => {
 						$set: {
 							loginInfo: {
 								ipAdd: ip,
-								country: geo.country,
-								city: geo.city,
+								country: geoCountry,
+								city: geoCity,
 								loginTime: new Date()
 							},
 							loginAttempts: 0
@@ -216,6 +221,11 @@ router.post('/loginotp/verify', (req, res, next) => {
 	//getting ip info
 	var ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 	var geo = geoip.lookup(ip);
+	var geoCountry = ""; var geoCity = "";
+	if(geo == null || geo.country == null) geoCountry = "unknown";
+	else geoCountry = geo.country;
+	if(geo == null || geo.city == null) geoCity = "unknown";
+	else geoCountry = geo.city;
 
 	//checking if exists
 	User.find({mobileNo: req.body.mobileNo})
@@ -245,8 +255,8 @@ router.post('/loginotp/verify', (req, res, next) => {
 								$set: {
 									loginInfo: {
 										ipAdd: ip,
-										country: geo.country,
-										city: geo.city,
+										country: geoCountry,
+										city: geoCity,
 										loginTime: new Date()
 									},
 									loginAttempts: 0
