@@ -19,8 +19,6 @@
     "jsonwebtoken": "^8.5.1",
     "mongoose": "^5.9.16",
     "morgan": "^1.10.0",
-    "ngrok": "^3.2.7",
-    "request": "^2.88.2",
-    "sendotp": "^1.2.9"
+    "request": "^2.88.2"
   }
 }

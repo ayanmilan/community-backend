@@ -24,7 +24,6 @@ router.post('/reg', (req, res, next) => {
 					}
 					else {
 						const user = new User({
-							_id: new mongoose.Types.ObjectId(),
 							mobileNo : req.body.mobileNo,
 							password: hash,
 							name: req.body.name,
@@ -64,7 +63,7 @@ router.post('/register', (req, res, next) => {
 					})
 					.catch( error => {
 						console.log(error);
-						res.status(400).json({error: 'OTP not sent'});
+						res.status(500).json({error: 'OTP not sent'});
 					});
 			}
 		});
@@ -83,7 +82,6 @@ router.post('/register/otp', (req, res, next) => {
 					}
 					else {
 						const user = new User({
-							_id: new mongoose.Types.ObjectId(),
 							mobileNo: req.body.mobileNo,
 							password: hash,
 							name: req.body.name,
@@ -102,7 +100,7 @@ router.post('/register/otp', (req, res, next) => {
 				});	
 			}
 			else if (response.data.message == "already_verified") {
-				res.status(400).json({message: 'OTP verified already, try again'});
+				res.status(500).json({message: 'OTP verified already, try again'});
 			}
 			else {
 				res.status(401).json({message: 'Wrong OTP'});
@@ -110,7 +108,7 @@ router.post('/register/otp', (req, res, next) => {
 		})
 		.catch( error => {
 			console.log(error);
-			res.status(400).json({error: error});
+			res.status(500).json({error: error});
 		});
 });
 
@@ -205,7 +203,7 @@ router.post('/loginotp', (req, res, next) => {
 					})
 					.catch( error => {
 						console.log(error);
-						res.status(400).json({error: 'OTP not sent'});
+						res.status(500).json({error: 'OTP not sent'});
 					});
 			}
 		})
@@ -264,7 +262,7 @@ router.post('/loginotp/verify', (req, res, next) => {
 							});
 						}
 						else if (response.data.message == "already_verified") {
-							res.status(400).json({message: 'OTP verified already, try again'});
+							res.status(500).json({message: 'OTP verified already, try again'});
 						}
 						else {
 							res.status(401).json({message: 'Wrong OTP'});
@@ -272,7 +270,58 @@ router.post('/loginotp/verify', (req, res, next) => {
 					})
 					.catch( error => {
 						console.log(error);
-						res.status(400).json({error: error});
+						res.status(500).json({error: error});
+					});
+			}
+		})
+		.catch(err => {
+			res.status(500).json({error: err});
+		});	
+});
+
+// FORGOT PASSWORD ROUTE
+router.post('/forgotpw', (req, res, next) => {
+
+	//checking if exists
+	User.find({mobileNo: req.body.mobileNo})
+		.exec()
+		.then(user => {
+			if(user.length <= 0) {
+				return res.status(401).json({message: 'Authentication failed'});
+			}
+			else {
+				//verifying OTP
+				axios.get(`http://api.msg91.com/api/verifyRequestOTP.php?authkey=${process.env.msg91authkey}&mobile=${"91"+req.body.mobileNo}&otp=${req.body.otp}`)
+					.then( (response) => {
+						console.log(response.data);
+						if(response.data.type == "success" ) {
+							bcrypt.hash(req.body.password, 10, (err, hash) => {
+								if (err) {
+									return res.status(500).json({error: err});
+								}
+								else {
+									User.updateOne({mobileNo: user[0].mobileNo}, {
+										$set: {
+											password: hash
+										}
+									},
+									err1 => {
+										if (err1) return res.status(500).json({error: err1});
+										else return res.status(200).json({message: 'password change successful'});	
+									});
+								}
+							});
+						}
+						else if (response.data.message == "already_verified") {
+							res.status(500).json({message: 'OTP verified already, try again'});
+						}
+						else {
+							res.status(401).json({message: 'Wrong OTP'});
+						}
+					})
+					.catch( error => {
+						console.log(error);
+						res.status(500).json({error: error});
 					});
 			}
 		})
