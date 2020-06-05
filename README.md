@@ -9,7 +9,7 @@
         "mobileNo": "9999999999"
       }
   
-### OTP Registeration POST route - /users/register/otp
+### OTP Registeration POST route - /users/register/verify
   
   ##### JSON body with fields: mobileNo, password, otp, name, dob(YYYY-MM-DD)
   Eg - 
