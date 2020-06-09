@@ -12,9 +12,6 @@ const User = require('../models/user'); // User schema
 const userController = require('../controllers/users')
 
 
-// DIRECT REGISTER WITHOUT VERIFICATION FOR TESTING
-router.post('/reg', userController.register_direct);
-
 
 // REGISTRATION ROUTE
 router.post('/register', userController.register);

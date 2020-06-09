@@ -78,7 +78,7 @@ exports.register_verify = (req, res, next) => {
 		.then( (response) => {
 			console.log(response.data);
 			if(response.data.type == "success" ) {
-				// user registeration
+				// user registration
 				bcrypt.hash(req.body.password, 10, (err, hash) => {
 					if (err) {
 						return res.status(500).json({error: err});
