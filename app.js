@@ -17,12 +17,16 @@ app.use(morgan(':body - :req[content-length]'));
 app.use(morgan('dev'));
 
 app.use(bodyParser.json()); // JSON body parser
+app.use(bodyParser.urlencoded({extended: false})); // URL encoded parser
 
 
 // LOGIN/REGISTER USER ROUTES
 const userRoutes = require('./api/routes/users');
 app.use('/users', userRoutes);
 
+// POSTS ROUTES
+const postRoutes = require('./api/routes/posts');
+app.use('/posts', postRoutes);
 
 
 // INVALID URL HANDLING
