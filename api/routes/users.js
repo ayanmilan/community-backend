@@ -9,7 +9,7 @@ const geoip = require('geoip-lite');
 
 const User = require('../models/user'); // User schema
 
-const userController = require('../controllers/users')
+const userController = require('../controllers/users-controller')
 
 
 
