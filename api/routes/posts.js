@@ -38,7 +38,7 @@ router.post('/', checkAuth, upload.array('postMedia'), (req, res, next) => {
 		.save()
 		.then(result => {
 			console.log(result);
-			res.status(201).json({message: 'Post created'});
+			res.status(201).json({message: 'Post created', _id: result._id});
 		})
 		.catch(error => {
 			res.status(500).json({error: error});
@@ -57,7 +57,7 @@ router.patch('/:postId', checkAuth, upload.array('postMedia'), (req, res, next) 
 	// For editing text if exists
 	if(typeof(req.body.text) != 'undefined') updateOps['text'] = req.body.text;
 
-	Post.updateOne({_id: req.params.postId, isDeleted: false}, { $set: updateOps, $push: {postMedia: mediaLinks} })
+	Post.updateOne({_id: req.params.postId, userId: req.userData.userId, isDeleted: false}, { $set: updateOps, $push: {postMedia: mediaLinks} })
 		.then(result => {
 			if(!result.n) return res.status(404).json({message: 'Post not found'});
 			res.status(200).json({message: 'Post edited'});
@@ -146,7 +146,7 @@ router.post('/:postId/comment', checkAuth, (req, res, next) => {
 				.save()
 				.then(result => {
 					console.log(result);
-					res.status(201).json({message: 'Comment created'});
+					res.status(201).json({message: 'Comment created', _id: result._id});
 				})
 				.catch(err => {
 					res.status(500).json({error: err});
