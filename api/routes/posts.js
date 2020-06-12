@@ -24,7 +24,7 @@ const upload = multer({storage: s3storage}); // Multer middleware
 const Post = require('../models/post'); // Post schema
 const Comment = require('../models/comment'); // Comment schema
 
-// CREATING POST ROUTE
+// CREATING POST
 router.post('/', checkAuth, upload.array('postMedia'), (req, res, next) => {
 	const post = new Post({
 		userId: mongoose.Types.ObjectId(req.userData.userId),
@@ -45,10 +45,32 @@ router.post('/', checkAuth, upload.array('postMedia'), (req, res, next) => {
 		});
 });
 
-// GETTING ALL POSTS ROUTE
+// EDITING POST
+router.patch('/:postId', checkAuth, upload.array('postMedia'), (req, res, next) => {
+	// For media uploaded
+	const mediaLinks = [];
+	for (const doc of req.files) {
+		mediaLinks.push(doc.location);
+	}
+
+	const updateOps = {updatedAt: new Date()};
+	// For editing text if exists
+	if(typeof(req.body.text) != 'undefined') updateOps['text'] = req.body.text;
+
+	Post.updateOne({_id: req.params.postId, isDeleted: false}, { $set: updateOps, $push: {postMedia: mediaLinks} })
+		.then(result => {
+			if(!result.n) return res.status(404).json({message: 'Post not found'});
+			res.status(200).json({message: 'Post edited'});
+		})
+		.catch(error => {
+			res.status(500).json({error: error});
+		});	
+});
+
+// GETTING ALL POSTS
 router.get('/', checkAuth, (req, res, next) => {
 	Post.find({isDeleted: false})
-		.select('_id userId text postMedia createdAt likes')
+		.select('_id userId text postMedia createdAt updatedAt likes')
 		.sort({createdAt: -1})
 		.exec()
 		.then(docs => {
@@ -59,10 +81,10 @@ router.get('/', checkAuth, (req, res, next) => {
 		});
 });
 
-// GETTING SPECIFIC POST ROUTE
+// GETTING SPECIFIC POST
 router.get('/:postId', checkAuth, (req, res, next) => {
 	Post.findOne({_id: req.params.postId, isDeleted: false})
-		.select('_id userId text postMedia createdAt likes')
+		.select('_id userId text postMedia createdAt updatedAt likes')
 		.exec()
 		.then(doc => {
 			if(!doc) return res.status(404).json({message: 'Post not found'});
@@ -73,7 +95,7 @@ router.get('/:postId', checkAuth, (req, res, next) => {
 		});
 });
 
-// DELETING POST ROUTE
+// DELETING POST
 router.delete('/:postId', checkAuth, (req, res, next) => {
 	Post.updateOne({_id: req.params.postId, userId: req.userData.userId, isDeleted: false}, {isDeleted: true, deletedAt: new Date()})
 		.then(result => {
@@ -85,7 +107,7 @@ router.delete('/:postId', checkAuth, (req, res, next) => {
 		});
 });
 
-// LIKING POST ROUTE
+// LIKING POST
 router.post('/:postId/like', checkAuth, (req, res, next) => {
 	Post.updateOne({_id: req.params.postId, isDeleted: false}, {$addToSet: {likes: req.userData.userId}})
 		.then(result => {
@@ -97,7 +119,7 @@ router.post('/:postId/like', checkAuth, (req, res, next) => {
 		});
 });
 
-// UNLIKING POST ROUTE
+// UNLIKING POST
 router.delete('/:postId/like', checkAuth, (req, res, next) => {
 	Post.updateOne({_id: req.params.postId, isDeleted: false}, {$pull: {likes: req.userData.userId}})
 		.then(result => {
@@ -109,7 +131,7 @@ router.delete('/:postId/like', checkAuth, (req, res, next) => {
 		});
 });
 
-// ADDING COMMENT ROUTE
+// ADDING COMMENT
 router.post('/:postId/comment', checkAuth, (req, res, next) => {
 	Post.findById(req.params.postId)
 		.then(post => {
@@ -135,7 +157,7 @@ router.post('/:postId/comment', checkAuth, (req, res, next) => {
 		});
 });
 
-// EDITING COMMENT ROUTE
+// EDITING COMMENT
 router.patch('/comment/:commentId', checkAuth, (req, res, next) => {
 	Comment.updateOne({_id: req.params.commentId, userId: req.userData.userId, isDeleted: false}, {content: req.body.content, updatedAt: new Date})
 		.then(result => {
@@ -147,7 +169,7 @@ router.patch('/comment/:commentId', checkAuth, (req, res, next) => {
 		});
 });
 
-// GETTING COMMENTS OF A POST ROUTE
+// GETTING COMMENTS OF A POST
 router.get('/:postId/comment', checkAuth, (req, res, next) => {
 	Post.findById(req.params.postId)
 		.then(post => {
@@ -168,7 +190,7 @@ router.get('/:postId/comment', checkAuth, (req, res, next) => {
 		});
 });
 
-// DELETING COMMENT ROUTE
+// DELETING COMMENT
 router.delete('/comment/:commentId', checkAuth, (req, res, next) => {
 	Comment.updateOne({_id: req.params.commentId, userId: req.userData.userId, isDeleted: false}, {isDeleted: true, deletedAt: new Date()})
 		.then(result => {
