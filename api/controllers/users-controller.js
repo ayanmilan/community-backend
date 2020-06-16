@@ -5,7 +5,7 @@ const axios = require('axios');
 const bcrypt = require('bcrypt');
 const geoip = require('geoip-lite');
 
-const User = require('../models/user');
+const User = require('../models/user'); // User schema
 
 exports.register_direct = (req, res, next) => {
 	User.find({mobileNo : req.body.mobileNo})
@@ -24,7 +24,8 @@ exports.register_direct = (req, res, next) => {
 							mobileNo : req.body.mobileNo,
 							password: hash,
 							name: req.body.name,
-							dob: new Date(req.body.dob)
+							dob: new Date(req.body.dob),
+							isAdmin: req.body.isAdmin
 						});
 						user
 							.save()
@@ -88,7 +89,8 @@ exports.register_verify = (req, res, next) => {
 							mobileNo: req.body.mobileNo,
 							password: hash,
 							name: req.body.name,
-							dob: new Date(req.body.dob)
+							dob: new Date(req.body.dob),
+							isAdmin: req.body.isAdmin
 						});
 						user
 							.save()

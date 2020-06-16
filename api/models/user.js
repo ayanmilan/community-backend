@@ -11,7 +11,8 @@ const userSchema = mongoose.Schema({
 		country: {type: String},
 		city: {type: String},
 		loginTime: {type: Date, default: Date.now}
-	}
+	},
+	isAdmin: {type: Boolean, default: false}
 });
 
 module.exports = mongoose.model('User', userSchema);
