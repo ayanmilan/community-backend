@@ -31,15 +31,15 @@ const postController = require('../controllers/posts-controller')
 // ADMIN ROUTES
 
 // GETTING ALL POSTS
-router.get('/admin', checkAdmin, postController.getAll_post);
+router.get('/admin', checkAuth, checkAdmin, postController.getAll_post);
 // GETTING SPECIFIC POST
-router.get('/admin/:postId', checkAdmin, postController.get_post);
+router.get('/admin/:postId', checkAuth, checkAdmin, postController.get_post);
 // DELETING POST
-router.delete('/admin/:postId', checkAdmin, postController.delete_post_admin);
+router.delete('/admin/:postId', checkAuth, checkAdmin, postController.delete_post_admin);
 // GETTING COMMENTS OF A POST
-router.get('/admin/:postId/comment', checkAdmin, postController.get_comment);
+router.get('/admin/:postId/comment', checkAuth, checkAdmin, postController.get_comment);
 // DELETING COMMENT
-router.delete('/admin/:postId/comment', checkAdmin, postController.delete_comment_admin);
+router.delete('/admin/:postId/comment', checkAuth, checkAdmin, postController.delete_comment_admin);
 
 // USER ROUTES
 
