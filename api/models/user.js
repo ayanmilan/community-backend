@@ -12,7 +12,8 @@ const userSchema = mongoose.Schema({
 		city: {type: String},
 		loginTime: {type: Date, default: Date.now}
 	},
-	isAdmin: {type: Boolean, default: false}
+	isAdmin: {type: Boolean},
+	isBlocked: {type: Boolean}
 });
 
 module.exports = mongoose.model('User', userSchema);

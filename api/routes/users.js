@@ -7,10 +7,12 @@ const axios = require('axios');
 const bcrypt = require('bcrypt');
 const geoip = require('geoip-lite');
 
+const checkAuth = require('../check-auth'); // JWT verification middleware
+const checkAdmin = require('../check-admin') // Admin verification middleware
+
 const User = require('../models/user'); // User schema
 
 const userController = require('../controllers/users-controller')
-
 
 
 // REGISTRATION ROUTE
@@ -31,6 +33,10 @@ router.post('/loginotp/verify', userController.loginotp_verify);
 
 // FORGOT PASSWORD ROUTE
 router.post('/forgotpw', userController.reset_password);
+
+
+// ADMIN BLOCK USER ROUTE
+router.post('/admin/block/:userId', checkAuth, checkAdmin, userController.block_user_admin);
 
 
 module.exports = router;

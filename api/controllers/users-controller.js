@@ -340,3 +340,14 @@ exports.reset_password = (req, res, next) => {
 			res.status(500).json({error: error});
 		});
 };
+
+exports.block_user_admin = (req,res,next) => {
+	User.updateOne({_id: req.params.userId}, {isBlocked: true})
+		.then(result => {
+			if(!result.n) return res.status(404).json({message: 'User not found'});
+			res.status(200).json({message: 'User blocked'});
+		})
+		.catch(error => {
+			res.status(500).json({error: error});
+		});
+};
