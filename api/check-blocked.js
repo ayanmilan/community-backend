@@ -8,9 +8,9 @@ module.exports = (req, res, next) => {
 	User.findById(req.userData.userId)
 		.then(user => {
 			if(user.isBlocked) return res.status(405).json({message : 'User blocked'});
+			next();
 		})
 		.catch(error => {
 			res.status(500).json({error: error});
 		});
-	next();
 }
