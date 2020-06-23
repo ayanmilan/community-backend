@@ -4,10 +4,11 @@ const dotenv = require('dotenv').config();
 const axios = require('axios');
 const bcrypt = require('bcrypt');
 const geoip = require('geoip-lite');
+const redis = require('./redis-controller').client;
 
 const User = require('../models/user'); // User schema
 
-exports.register_direct = (req, res, next) => {
+exports.register_admin = (req, res, next) => {
 	User.find({mobileNo : req.body.mobileNo})
 		.exec()
 		.then(user => {
@@ -150,12 +151,11 @@ exports.loginpw = (req, res, next) => {
 				if(result) {
 					// JWT generation
 					const token = jwt.sign({
-						mobileNo: user[0].mobileNo,
 						userId: user[0]._id
 					}, 
 					process.env.JWT_KEY || "secret",
 					{
-						expiresIn: "6h"
+						expiresIn: "24h"
 					});
 
 					// updating login info
@@ -245,12 +245,11 @@ exports.loginotp_verify = (req, res, next) => {
 						if(response.data.type == "success" ) {
 							// JWT generation
 							const token = jwt.sign({
-								mobileNo: user[0].mobileNo,
 								userId: user[0]._id
 							}, 
 							process.env.JWT_KEY || "secret",
 							{
-								expiresIn: "6h"
+								expiresIn: "24h"
 							});
 
 							// updating login info
@@ -345,6 +344,9 @@ exports.block_user_admin = (req,res,next) => {
 	User.updateOne({_id: req.params.userId}, {isBlocked: true})
 		.then(result => {
 			if(!result.n) return res.status(404).json({message: 'User not found'});
+			// deleting from redis
+			redis.del(String(req.params.userId));
+			
 			res.status(200).json({message: 'User blocked'});
 		})
 		.catch(error => {

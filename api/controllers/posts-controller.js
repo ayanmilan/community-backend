@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
-
+const redisController = require('./redis-controller');
+const redis = redisController.client;
+;
 const Post = require('../models/post'); // Post schema
 const Comment = require('../models/comment'); // Comment schema
 
@@ -50,7 +52,20 @@ exports.getAll_post = (req, res, next) => {
 		.sort({createdAt: -1})
 		.exec()
 		.then(docs => {
-			res.status(200).json(docs);
+			const posts = docs.map(async doc => {
+					const user = await redisController.fetchUser(doc.userId.toString());
+					return {
+						_id: doc._id,
+						userId: doc.userId,
+						uName: user.name,
+						text: doc.text,
+						postMedia: doc.postMedia,
+						likes: doc.likes,
+						createdAt: doc.createdAt,
+						updatedAt: doc.updatedAt
+					}
+			})
+			Promise.all(posts).then(result => {res.status(200).json(result);});
 		})
 		.catch(error => {
 			res.status(500).json({error: error});
@@ -61,9 +76,21 @@ exports.get_post = (req, res, next) => {
 	Post.findOne({_id: req.params.postId, isDeleted: false})
 		.select('_id userId text postMedia createdAt updatedAt likes')
 		.exec()
-		.then(doc => {
+		.then(async doc => {
 			if(!doc) return res.status(404).json({message: 'Post not found'});
-			res.status(200).json(doc);
+			else {
+				const user = await redisController.fetchUser(doc.userId.toString());
+				res.status(200).json({
+					_id: doc._id,
+					userId: doc.userId,
+					uName: user.name,
+					text: doc.text,
+					postMedia: doc.postMedia,
+					likes: doc.likes,
+					createdAt: doc.createdAt,
+					updatedAt: doc.updatedAt
+				});
+			}
 		})
 		.catch(error => {
 			res.status(500).json({error: error});
@@ -148,7 +175,18 @@ exports.get_comment = (req, res, next) => {
 				.sort({createdAt: -1})
 				.exec()
 				.then(docs => {
-					res.status(200).json(docs);
+					const comments = docs.map(async doc => {
+							const user = await redisController.fetchUser(doc.userId.toString());
+							return {
+								_id: doc._id,
+								userId: doc.userId,
+								uName: user.name,
+								content: doc.content,
+								createdAt: doc.createdAt,
+								updatedAt: doc.updatedAt
+							}
+					})
+					Promise.all(comments).then(result => {res.status(200).json(result);});
 				})
 				.catch(error => {
 					res.status(500).json({error: error});

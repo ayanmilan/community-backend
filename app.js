@@ -5,10 +5,17 @@ const bodyParser = require('body-parser');
 const morgan = require('morgan');
 const dotenv = require('dotenv').config();
 
+
 // Connecting to the database
 mongoose.connect(process.env.MONGO_URL || 'mongodb://localhost:27017/community-app', { useNewUrlParser: true, useUnifiedTopology: true, useCreateIndex: true }, (error) => {
 	if(error) throw error;
 	else console.log('Database connected!');
+});
+
+// Connecting to Redis
+const redis = require('./api/controllers/redis-controller').client;
+redis.on('connect', () => {
+	console.log('Redis connected!');
 });
 
 // Logging the requests
